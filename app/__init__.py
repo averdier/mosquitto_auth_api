@@ -21,6 +21,7 @@ def create_app(config_name='default'):
     })
 
     app.config.from_object(config[config_name])
+    config[config_name].init_app(app)
 
     app.register_blueprint(api_blueprint)
 
@@ -40,6 +41,12 @@ def create_app(config_name='default'):
     with app.app_context():
         from app.models import User, MqttClient, MqttAccess
         db.create_all()
+
+        if len(User.query.all()) == 0:
+            admin = User(username='averdier')
+            admin.secret = 'by6WqIAxG3Ah'
+            db.session.add(admin)
+            db.session.commit()
 
     return app
 

@@ -6,7 +6,7 @@ from .. import api
 
 user_post_model = api.model('User POST model', {
     'username': fields.String(required=True, min_length=3, max_length=32, description='Username'),
-    'password': fields.String(required=True, min_length=3, max_length=16, description='Password')
+    'secret': fields.String(required=True, min_length=3, max_length=16, description='Secret')
 })
 
 user_model = api.model('User model', {

@@ -2,6 +2,7 @@
 
 from flask import request
 from flask_restplus import Namespace, Resource, abort
+from .. import auth
 from ..serializers.clients import client_container_model, client_minimal_model, client_post_model, client_detail_model
 from app.extensions import db
 from app.models import MqttClient
@@ -19,6 +20,7 @@ ns = Namespace('clients', description='Clients related operations')
 
 @ns.route('/')
 class ClientCollection(Resource):
+    decorators = [auth.login_required]
 
     @ns.marshal_with(client_container_model)
     def get(self):
@@ -56,6 +58,7 @@ class ClientCollection(Resource):
 @ns.route('/<int:id>')
 @ns.response(404, 'Client not found')
 class ClientItem(Resource):
+    decorators = [auth.login_required]
 
     @ns.marshal_with(client_detail_model)
     def get(self, id):

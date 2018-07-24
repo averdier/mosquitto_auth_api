@@ -2,6 +2,7 @@
 
 from flask import request
 from flask_restplus import Namespace, Resource, abort
+from .. import auth
 from ..serializers.users import user_container_model, user_model, user_post_model
 from app.extensions import db
 from app.models import User
@@ -19,6 +20,7 @@ ns = Namespace('users', description='Users related operations')
 
 @ns.route('/')
 class UserCollection(Resource):
+    decorators = [auth.login_required]
 
     @ns.marshal_with(user_container_model)
     def get(self):
@@ -42,14 +44,12 @@ class UserCollection(Resource):
         data = request.json
 
         if User.query.filter_by(username=data['username']).first() is not None:
-            abort(400, error='Username already exist')
+            abort(409, error='Username already exist')
 
-        user = User()
-        user.username = data['username']
-        user.hash_password(data['password'])
-
-        if data.get('email', None) is not None:
-            user.email = data['email']
+        user = User(
+            username=data['username'],
+            secret=data['secret']
+        )
 
         db.session.add(user)
         db.session.commit()
@@ -60,6 +60,7 @@ class UserCollection(Resource):
 @ns.route('/<int:id>')
 @ns.response(404, 'User not found')
 class UserItem(Resource):
+    decorators = [auth.login_required]
 
     @ns.marshal_with(user_model)
     def get(self, id):

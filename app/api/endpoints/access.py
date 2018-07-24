@@ -2,6 +2,7 @@
 
 from flask import g, request
 from flask_restplus import Namespace, Resource, abort
+from .. import auth
 from ..serializers.access import access_post_model, access_container_model, access_model, access_patch_model
 from app.extensions import db
 from app.models import MqttAccess, MqttClient
@@ -19,6 +20,7 @@ ns = Namespace('access', description='accesses related operations')
 
 @ns.route('/')
 class AccessCollection(Resource):
+    decorators = [auth.login_required]
 
     @ns.marshal_with(access_container_model)
     def get(self):
@@ -56,6 +58,7 @@ class AccessCollection(Resource):
 @ns.route('/<int:id>')
 @ns.response(404, 'Access not found')
 class AccessItem(Resource):
+    decorators = [auth.login_required]
 
     @ns.marshal_with(access_model)
     def get(self, id):
@@ -101,6 +104,5 @@ class AccessItem(Resource):
 
         db.session.delete(access)
         db.session.commit()
-
 
         return 'Access successfully deleted.', 204
