@@ -17,8 +17,15 @@ class Config:
     RESTPLUS_VALIDATE = True
     RESTPLUS_MASK_SWAGGER = False
 
-    SQLALCHEMY_DATABASE_URI = ''
+    DB_USER = os.environ.get('DB_USER', 'postgres')
+    DB_PASSWORD = os.environ.get('DB_PASSWORD', 'mysecretpassword')
+    DB_HOST = os.environ.get('DB_HOST', 'localhost')
+    DB_TABLE = os.environ.get('DB_TABLE', 'mosquitto_auth')
+
+    SQLALCHEMY_DATABASE_URI = 'postgres://{0}:{1}@{2}/{3}'.format(DB_USER, DB_PASSWORD, DB_HOST, DB_TABLE)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    LOG_PATH = os.environ.get('LOG_PATH', os.path.join(basedir, 'mosquitto_auth_service.log'))
 
     @staticmethod
     def init_app(app):
@@ -40,9 +47,21 @@ class DevelopmentConfig(Config):
     Development configuration
     """
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        'DATABASE_URL', 'postgres://postgres:mysecretpassword@localhost/mosquitto_auth'
-    )
+
+    @staticmethod
+    def init_app(app):
+        Config.init_app(app)
+
+        import logging
+        from logging.handlers import RotatingFileHandler
+
+        handler_debug = logging.handlers.RotatingFileHandler(app.config['LOG_PATH'], mode="a", maxBytes=5000000,
+                                                             backupCount=1, encoding="utf-8")
+        formatter = logging.Formatter("%(asctime)s -- %(name)s -- %(levelname)s -- %(message)s")
+        handler_debug.setFormatter(formatter)
+
+        app.logger.addHandler(handler_debug)
+        app.logger.setLevel(logging.DEBUG)
 
 
 class ProductionConfig(Config):
@@ -50,7 +69,6 @@ class ProductionConfig(Config):
     Production configuration
     """
     DEBUG = False
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', '')
 
 
 config = {

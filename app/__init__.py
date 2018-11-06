@@ -38,21 +38,11 @@ def create_app(config_name='default'):
 
         return response
 
-    with app.app_context():
-        from app.models import User, MqttClient, MqttAccess
-        db.create_all()
-
-        if len(User.query.all()) == 0:
-            admin = User(username='averdier')
-            admin.secret = 'by6WqIAxG3Ah'
-            db.session.add(admin)
-            db.session.commit()
-
     return app
 
 
-def extensions(app):
+def extensions(flask_app):
     """
     Init extensions
     """
-    db.init_app(app)
+    db.init_app(flask_app)
